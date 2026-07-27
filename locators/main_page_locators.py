@@ -7,5 +7,6 @@ class MainPageLocators:
     ORDER_BUTTON_TOP = (By.XPATH, "(//button[contains(text(), 'Заказать')])[1]")
     ORDER_BUTTON_BOTTOM = (By.XPATH, "(//button[contains(text(), 'Заказать')])[2]")
     ACCORDION_BUTTONS = (By.CLASS_NAME, 'accordion__button')
-    LOGO_SCOOTER = (By.XPATH, "//a[contains(@href, '/')]//img[contains(@src, 'scooter') or contains(@alt, 'Самокат')] | //div[contains(@class, 'logo')]//img[contains(@src, 'scooter') or contains(@alt, 'Самокат')] | //a[@href='/']//img[contains(@src, 'scooter')]")
-    LOGO_YANDEX = (By.XPATH, "//a[contains(@href, 'dzen.ru')]//img[contains(@alt, 'Yandex') or contains(@src, 'yandex')] | //img[contains(@alt, 'Yandex')] | //a[contains(@href, 'dzen.ru')]")
+    LOGO_SCOOTER = (By.XPATH, "//img[@alt='Scooter']")
+    LOGO_YANDEX = (By.XPATH, "//img[@alt='Yandex']")
+    COOKIES_BUTTON = (By.XPATH, "//button[contains(text(), 'да все привыкли')]")

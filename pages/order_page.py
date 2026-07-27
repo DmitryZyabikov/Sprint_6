@@ -1,184 +1,145 @@
-import time
-
+import allure
 from selenium.webdriver.common.by import By
 from selenium.webdriver.common.keys import Keys
-from selenium.webdriver.support.ui import WebDriverWait
-from selenium.webdriver.support import expected_conditions as EC
 
 from locators.order_page_locators import OrderPageLocators
 from pages.base_page import BasePage
 
 
 class OrderPage(BasePage):
+
+    @allure.step("Заполнение первой формы заказа")
     def fill_first_form(self, name, surname, address, station, phone):
         self.send_keys(OrderPageLocators.INPUT_NAME, name)
         self.send_keys(OrderPageLocators.INPUT_SURNAME, surname)
         self.send_keys(OrderPageLocators.INPUT_ADDRESS, address)
 
-        phone_field = self.driver.find_element(*OrderPageLocators.INPUT_PHONE)
+        phone_field = self.find_element(OrderPageLocators.INPUT_PHONE)
         phone_field.clear()
         phone_field.send_keys(phone)
 
         self._fill_metro_station(station)
 
-        time.sleep(3)
+        self._click_next_button()
 
-        next_btn = None
+        self.wait_for_visibility(OrderPageLocators.INPUT_DATE, timeout=20)
 
-        selectors = [
-            OrderPageLocators.NEXT_BUTTON,
-            (By.XPATH, "//button[contains(text(), 'Далее')]"),
-            (By.XPATH, "//div[contains(@class, 'Button') and contains(text(), 'Далее')]"),
-        ]
-
-        for selector in selectors:
-            try:
-                next_btn = WebDriverWait(self.driver, 5).until(
-                    EC.element_to_be_clickable(selector)
-                )
-                break
-            except Exception:
-                continue
-
-        if next_btn is None:
-            elements = self.driver.find_elements(By.XPATH, "//*[contains(text(), 'Далее')]")
-            if elements:
-                next_btn = elements[0]
-            else:
-                raise Exception("Кнопка 'Далее' не найдена")
-
-        self.driver.execute_script("arguments[0].click();", next_btn)
-
-        WebDriverWait(self.driver, 20).until(
-            EC.visibility_of_element_located(OrderPageLocators.INPUT_DATE)
-        )
-
-    def _fill_metro_station(self, station):
-        station_field = self.driver.find_element(*OrderPageLocators.INPUT_STATION)
-
-        station_field.clear()
-        time.sleep(0.3)
-
-        self.driver.execute_script("""
-            var input = arguments[0];
-            var nativeInputValueSetter = Object.getOwnPropertyDescriptor(window.HTMLInputElement.prototype, 'value').set;
-            nativeInputValueSetter.call(input, '');
-            input.value = '';
-            input.dispatchEvent(new Event('input', { bubbles: true }));
-            input.dispatchEvent(new Event('change', { bubbles: true }));
-        """, station_field)
-
-        time.sleep(0.3)
-
-        station_field.send_keys(station)
-        time.sleep(2)
-
-        selected = False
-
-        try:
-            elements = self.driver.find_elements(By.CSS_SELECTOR, "ul[class*='list'] li, div[class*='suggestions'] li, div[class*='options'] li")
-            for el in elements:
-                if station.lower() in el.text.lower() and el.is_displayed():
-                    self.driver.execute_script("arguments[0].click();", el)
-                    selected = True
-                    break
-        except Exception:
-            pass
-
-        if not selected:
-            try:
-                elements = self.driver.find_elements(By.CSS_SELECTOR, "div[class*='option'], div[class*='Item'], div[data-testid*='metro']")
-                for el in elements:
-                    if station.lower() in el.text.lower() and el.is_displayed():
-                        self.driver.execute_script("arguments[0].click();", el)
-                        selected = True
-                        break
-            except Exception:
-                pass
-
-        if not selected:
-            time.sleep(0.3)
-            station_field = self.driver.find_element(*OrderPageLocators.INPUT_STATION)
-            station_field.send_keys(Keys.ARROW_DOWN)
-            time.sleep(0.5)
-            station_field.send_keys(Keys.ENTER)
-            time.sleep(1)
-            selected = True
-
-        if not selected:
-            try:
-                self.driver.execute_script("""
-                    var input = arguments[0];
-                    var nativeInputValueSetter = Object.getOwnPropertyDescriptor(window.HTMLInputElement.prototype, 'value').set;
-                    nativeInputValueSetter.call(input, arguments[1]);
-                    input.dispatchEvent(new Event('input', { bubbles: true }));
-                    input.dispatchEvent(new Event('change', { bubbles: true }));
-                """, station_field, station)
-                time.sleep(1)
-            except Exception:
-                pass
-
+    @allure.step("Заполнение второй формы заказа")
     def fill_second_form(self, date_text, duration_locator, color_locator, comment):
-        date_input = self.driver.find_element(*OrderPageLocators.INPUT_DATE)
+        date_input = self.find_element(OrderPageLocators.INPUT_DATE)
         date_input.clear()
         date_input.send_keys(date_text)
-        time.sleep(0.5)
         date_input.send_keys(Keys.ESCAPE)
-        time.sleep(1)
 
-        dropdown = self.driver.find_element(*OrderPageLocators.DROPDOWN_DURATION)
+        dropdown = self.find_element(OrderPageLocators.DROPDOWN_DURATION)
         dropdown.click()
-        time.sleep(1)
 
-        option = WebDriverWait(self.driver, 5).until(
-            EC.element_to_be_clickable(duration_locator)
-        )
-        self.driver.execute_script("arguments[0].click();", option)
-        time.sleep(1)
+        option = self.wait_for_clickable(duration_locator, timeout=5)
+        self.execute_script("arguments[0].click();", option)
 
-        checkbox = self.driver.find_element(*color_locator)
-        self.driver.execute_script("arguments[0].click();", checkbox)
-        time.sleep(0.5)
+        checkbox = self.find_element(color_locator)
+        self.execute_script("arguments[0].click();", checkbox)
 
-        comment_field = self.driver.find_element(*OrderPageLocators.INPUT_COMMENT)
+        comment_field = self.find_element(OrderPageLocators.INPUT_COMMENT)
         comment_field.clear()
         comment_field.send_keys(comment)
 
+    @allure.step("Подтверждение заказа")
     def confirm_order(self):
-        confirm_btn = WebDriverWait(self.driver, 10).until(
-            EC.element_to_be_clickable(OrderPageLocators.CONFIRM_BUTTON)
-        )
-        self.driver.execute_script("arguments[0].click();", confirm_btn)
-        time.sleep(3)
+        confirm_btn = self.wait_for_clickable(OrderPageLocators.CONFIRM_BUTTON, timeout=10)
+        self.execute_script("arguments[0].click();", confirm_btn)
 
-        WebDriverWait(self.driver, 10).until(
-            EC.visibility_of_element_located(OrderPageLocators.CONFIRMATION_MODAL)
-        )
-        time.sleep(1)
+        self.wait_for_visibility(OrderPageLocators.CONFIRMATION_MODAL, timeout=10)
 
-        yes_button = self.driver.find_element(*OrderPageLocators.CONFIRMATION_YES_BUTTON)
-        self.driver.execute_script("arguments[0].scrollIntoView({block: 'center'});", yes_button)
-        time.sleep(0.5)
-        self.driver.execute_script("arguments[0].click();", yes_button)
-        time.sleep(15)
+        yes_button = self.find_element(OrderPageLocators.CONFIRMATION_YES_BUTTON)
+        self.execute_script("arguments[0].scrollIntoView({block: 'center'});", yes_button)
+        self.execute_script("arguments[0].click();", yes_button)
 
+    @allure.step("Проверка видимости сообщения об успехе")
     def is_success_message_visible(self):
         selectors = [
-            (By.XPATH, "//*[contains(text(), 'Заказ оформлен')]"),
-            (By.XPATH, "//*[contains(text(), 'Номер заказа')]"),
-            (By.XPATH, "//*[contains(text(), 'Заказ')]"),
-            (By.CLASS_NAME, 'Order_Success__header'),
-            (By.XPATH, "//h1[contains(text(), 'Заказ оформлен')]"),
+            OrderPageLocators.SUCCESS_MESSAGE_1,
+            OrderPageLocators.SUCCESS_MESSAGE_2,
+            OrderPageLocators.SUCCESS_MESSAGE_3,
+            OrderPageLocators.SUCCESS_MESSAGE_4,
+            OrderPageLocators.SUCCESS_MESSAGE_5,
         ]
 
-        for by, selector in selectors:
+        for locator in selectors:
             try:
-                element = WebDriverWait(self.driver, 5).until(
-                    EC.visibility_of_element_located((by, selector))
-                )
+                element = self.wait_for_visibility(locator, timeout=5)
                 if element.is_displayed():
                     return True
             except Exception:
                 continue
 
         return False
+
+    @allure.step("Заполнение станции метро")
+    def _fill_metro_station(self, station):
+        station_field = self.find_element(OrderPageLocators.INPUT_STATION)
+        station_field.clear()
+        station_field.send_keys(station)
+
+        # Ждем появления подсказок метро
+        try:
+            self.wait_until(
+                lambda d: len(d.find_elements(By.XPATH, "//*[contains(@class, 'suggest') or contains(@class, 'suggestion') or contains(@class, 'option')]")) > 0,
+                timeout=10,
+            )
+        except Exception:
+            pass
+
+        # Пытаемся выбрать из подсказок
+        selected = self._select_station_from_suggestions(
+            station, OrderPageLocators.STATION_SUGGESTIONS_CSS_1
+        )
+
+        if not selected:
+            selected = self._select_station_from_suggestions(
+                station, OrderPageLocators.STATION_SUGGESTIONS_CSS_2
+            )
+
+        if not selected:
+            selected = self._select_station_from_suggestions(
+                station, OrderPageLocators.STATION_SUGGESTIONS_CSS_3
+            )
+
+        if not selected:
+            # Выбираем первую подсказку стрелками
+            station_field.send_keys(Keys.ARROW_DOWN)
+            station_field.send_keys(Keys.ENTER)
+
+    def _select_station_from_suggestions(self, station, css_selector):
+        try:
+            elements = self.find_elements_by_css(css_selector)
+            for el in elements:
+                if station.lower() in el.text.lower() and el.is_displayed():
+                    self.execute_script("arguments[0].scrollIntoView({block: 'center'});", el)
+                    self.execute_script("arguments[0].click();", el)
+                    return True
+        except Exception:
+            pass
+        return False
+
+    def _click_next_button(self):
+        selectors = [
+            OrderPageLocators.NEXT_BUTTON,
+            OrderPageLocators.NEXT_BUTTON_ALT_1,
+            OrderPageLocators.NEXT_BUTTON_ALT_2,
+        ]
+
+        for selector in selectors:
+            try:
+                next_btn = self.wait_for_clickable(selector, timeout=5)
+                self.execute_script("arguments[0].click();", next_btn)
+                return
+            except Exception:
+                continue
+
+        elements = self.find_all_elements(OrderPageLocators.NEXT_BUTTON)
+        if elements:
+            self.execute_script("arguments[0].click();", elements[0])
+            return
+
+        raise Exception("Кнопка 'Далее' не найдена")
