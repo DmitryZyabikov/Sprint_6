@@ -25,7 +25,7 @@ class OrderPage(BasePage):
         self.wait_for_visibility(OrderPageLocators.INPUT_DATE, timeout=20)
 
     @allure.step("Заполнение второй формы заказа")
-    def fill_second_form(self, date_text, duration_locator, color_locator, comment):
+    def fill_second_form(self, date_text, duration_index, color_locator, comment):
         date_input = self.find_element(OrderPageLocators.INPUT_DATE)
         date_input.clear()
         date_input.send_keys(date_text)
@@ -34,7 +34,8 @@ class OrderPage(BasePage):
         dropdown = self.find_element(OrderPageLocators.DROPDOWN_DURATION)
         dropdown.click()
 
-        option = self.wait_for_clickable(duration_locator, timeout=5)
+        options = self.find_elements(OrderPageLocators.DROPDOWN_OPTIONS)
+        option = options[duration_index]
         self.execute_script("arguments[0].click();", option)
 
         checkbox = self.find_element(color_locator)
@@ -80,9 +81,9 @@ class OrderPage(BasePage):
             station_field.send_keys(Keys.ARROW_DOWN)
             station_field.send_keys(Keys.ENTER)
 
-    def _select_station_from_suggestions(self, station, css_selector):
+    def _select_station_from_suggestions(self, station, locator):
         try:
-            elements = self.find_elements_by_css(css_selector)
+            elements = self.find_elements(locator)
             for el in elements:
                 if station.lower() in el.text.lower() and el.is_displayed():
                     self.execute_script("arguments[0].scrollIntoView({block: 'center'});", el)

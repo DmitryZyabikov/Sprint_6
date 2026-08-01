@@ -10,12 +10,10 @@ class OrderPageLocators:
     INPUT_STATION = (By.XPATH, "//input[@placeholder='* Станция метро']")
     INPUT_PHONE = (By.XPATH, "//input[contains(@placeholder, 'Телефон')]")
     NEXT_BUTTON = (By.XPATH, "//*[contains(text(), 'Далее')]")
-    STATION_SUGGESTIONS = "div[data-testid='metro-suggestions'] div[class*='option'], ul[class*='suggestions'] li, div[class*='dropdown'] li, [class*='suggest'] li"
+    STATION_SUGGESTIONS = (By.CSS_SELECTOR, "div[data-testid='metro-suggestions'] div[class*='option'], ul[class*='suggestions'] li, div[class*='dropdown'] li, [class*='suggest'] li")
     INPUT_DATE = (By.XPATH, "//input[@placeholder='* Когда привезти самокат']")
     DROPDOWN_DURATION = (By.XPATH, "//div[contains(@class, 'Dropdown-placeholder') or contains(@class, 'select') or contains(@class, 'dropdown')]")
     DROPDOWN_OPTIONS = (By.XPATH, "//div[contains(@class, 'Dropdown-option') or contains(@class, 'option') or contains(@class, 'item')]")
-    OPTION_ONE_DAY = (By.XPATH, "(//div[contains(@class, 'Dropdown-option') or contains(@class, 'option')])[1]")
-    OPTION_TWO_DAYS = (By.XPATH, "(//div[contains(@class, 'Dropdown-option') or contains(@class, 'option')])[2]")
     COLOR_BLACK_CHECKBOX = (By.XPATH, "//label[contains(text(), 'чёрный')]//input[@type='checkbox']")
     COLOR_GREY_CHECKBOX = (By.XPATH, "//label[contains(text(), 'серая')]//input[@type='checkbox']")
     INPUT_COMMENT = (By.XPATH, "//input[@placeholder='Комментарий для курьера']")

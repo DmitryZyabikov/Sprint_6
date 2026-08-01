@@ -4,6 +4,7 @@ import allure
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
+from locators.main_page_locators import MainPageLocators
 
 
 class BasePage:
@@ -20,9 +21,7 @@ class BasePage:
     @allure.step("Принятие cookies")
     def accept_cookies(self):
         try:
-            btn = self.wait_for_clickable(
-                (By.XPATH, "//button[contains(text(), 'да все привыкли')]"), timeout=8
-            )
+            btn = self.wait_for_clickable(MainPageLocators.COOKIES_BUTTON, timeout=8)
             self.execute_script("arguments[0].click();", btn)
         except Exception:
             pass

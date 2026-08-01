@@ -42,7 +42,7 @@ class TestOrderFlow:
         with allure.step("Заполнение второй формы заказа"):
             order_page.fill_second_form(
                 date_text=date,
-                duration_locator=OrderPageLocators.OPTION_ONE_DAY,
+                duration_index=0,
                 color_locator=OrderPageLocators.COLOR_BLACK_CHECKBOX,
                 comment=comment,
             )
