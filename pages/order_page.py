@@ -1,5 +1,4 @@
 import allure
-from selenium.webdriver.common.by import By
 from selenium.webdriver.common.keys import Keys
 
 from locators.order_page_locators import OrderPageLocators
@@ -36,10 +35,10 @@ class OrderPage(BasePage):
 
         options = self.find_elements(OrderPageLocators.DROPDOWN_OPTIONS)
         option = options[duration_index]
-        self.execute_script("arguments[0].click();", option)
+        self.click_element(option)
 
         checkbox = self.find_element(color_locator)
-        self.execute_script("arguments[0].click();", checkbox)
+        self.click_element(checkbox)
 
         comment_field = self.find_element(OrderPageLocators.INPUT_COMMENT)
         comment_field.clear()
@@ -48,13 +47,12 @@ class OrderPage(BasePage):
     @allure.step("Подтверждение заказа")
     def confirm_order(self):
         confirm_btn = self.wait_for_clickable(OrderPageLocators.CONFIRM_BUTTON, timeout=10)
-        self.execute_script("arguments[0].click();", confirm_btn)
+        self.click_element(confirm_btn)
 
         self.wait_for_visibility(OrderPageLocators.CONFIRMATION_MODAL, timeout=10)
 
         yes_button = self.find_element(OrderPageLocators.CONFIRMATION_YES_BUTTON)
-        self.execute_script("arguments[0].scrollIntoView({block: 'center'});", yes_button)
-        self.execute_script("arguments[0].click();", yes_button)
+        self.click_element(yes_button)
 
     @allure.step("Проверка видимости сообщения об успехе")
     def is_success_message_visible(self):
@@ -69,8 +67,8 @@ class OrderPage(BasePage):
 
         try:
             self.wait_until(
-                lambda d: len(d.find_elements(By.XPATH, "//*[contains(@class, 'suggest') or contains(@class, 'suggestion') or contains(@class, 'option')]")) > 0,
-                timeout=10,
+                lambda d: len(self.find_all_elements(OrderPageLocators.METRO_SUGGESTIONS)) > 0,
+                timeout=5,
             )
         except Exception:
             pass
@@ -86,8 +84,7 @@ class OrderPage(BasePage):
             elements = self.find_elements(locator)
             for el in elements:
                 if station.lower() in el.text.lower() and el.is_displayed():
-                    self.execute_script("arguments[0].scrollIntoView({block: 'center'});", el)
-                    self.execute_script("arguments[0].click();", el)
+                    self.click_element(el)
                     return True
         except Exception:
             pass
@@ -95,5 +92,4 @@ class OrderPage(BasePage):
 
     def _click_next_button(self):
         next_btn = self.wait_for_clickable(OrderPageLocators.NEXT_BUTTON, timeout=10)
-        self.execute_script("arguments[0].scrollIntoView({block: 'center'});", next_btn)
-        self.execute_script("arguments[0].click();", next_btn)
+        self.click_element(next_btn)

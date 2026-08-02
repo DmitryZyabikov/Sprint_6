@@ -37,4 +37,4 @@ class TestLogoRedirects:
                 timeout=10,
             )
             current_url = main_page.get_current_url()
-            assert "dzen.ru" in current_url or "yandex.ru" in current_url
+            assert "dzen.ru" in current_url, f"Ожидался переход на dzen.ru, получен URL: {current_url}"

@@ -106,3 +106,8 @@ class BasePage:
     @allure.step("Поиск всех элементов по локатору {locator}")
     def find_all_elements(self, locator):
         return self.driver.find_elements(*locator)
+
+    @allure.step("Клик по элементу через JS")
+    def click_element(self, element):
+        self.execute_script("arguments[0].scrollIntoView({block: 'center'});", element)
+        self.execute_script("arguments[0].click();", element)

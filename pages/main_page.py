@@ -13,6 +13,7 @@ class MainPage(BasePage):
 
     @allure.step("Клик по нижней кнопке 'Заказать'")
     def click_order_button_bottom(self):
+        self.execute_script("window.scrollBy(0, 600);")
         self.click(MainPageLocators.ORDER_BUTTON_BOTTOM)
         return OrderPage(self.driver)
 
