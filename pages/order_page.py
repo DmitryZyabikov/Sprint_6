@@ -1,0 +1,95 @@
+import allure
+from selenium.webdriver.common.keys import Keys
+
+from locators.order_page_locators import OrderPageLocators
+from pages.base_page import BasePage
+
+
+class OrderPage(BasePage):
+
+    @allure.step("Заполнение первой формы заказа")
+    def fill_first_form(self, name, surname, address, station, phone):
+        self.send_keys(OrderPageLocators.INPUT_NAME, name)
+        self.send_keys(OrderPageLocators.INPUT_SURNAME, surname)
+        self.send_keys(OrderPageLocators.INPUT_ADDRESS, address)
+
+        phone_field = self.find_element(OrderPageLocators.INPUT_PHONE)
+        phone_field.clear()
+        phone_field.send_keys(phone)
+
+        self._fill_metro_station(station)
+
+        self._click_next_button()
+
+        self.wait_for_visibility(OrderPageLocators.INPUT_DATE, timeout=20)
+
+    @allure.step("Заполнение второй формы заказа")
+    def fill_second_form(self, date_text, duration_index, color_locator, comment):
+        date_input = self.find_element(OrderPageLocators.INPUT_DATE)
+        date_input.clear()
+        date_input.send_keys(date_text)
+        date_input.send_keys(Keys.ESCAPE)
+
+        dropdown = self.find_element(OrderPageLocators.DROPDOWN_DURATION)
+        dropdown.click()
+
+        options = self.find_elements(OrderPageLocators.DROPDOWN_OPTIONS)
+        option = options[duration_index]
+        self.click_element(option)
+
+        checkbox = self.find_element(color_locator)
+        self.click_element(checkbox)
+
+        comment_field = self.find_element(OrderPageLocators.INPUT_COMMENT)
+        comment_field.clear()
+        comment_field.send_keys(comment)
+
+    @allure.step("Подтверждение заказа")
+    def confirm_order(self):
+        confirm_btn = self.wait_for_clickable(OrderPageLocators.CONFIRM_BUTTON, timeout=10)
+        self.click_element(confirm_btn)
+
+        self.wait_for_visibility(OrderPageLocators.CONFIRMATION_MODAL, timeout=10)
+
+        yes_button = self.find_element(OrderPageLocators.CONFIRMATION_YES_BUTTON)
+        self.click_element(yes_button)
+
+    @allure.step("Проверка видимости сообщения об успехе")
+    def is_success_message_visible(self):
+        element = self.wait_for_visibility(OrderPageLocators.SUCCESS_MESSAGE, timeout=10)
+        return element.is_displayed()
+
+    @allure.step("Заполнение станции метро")
+    def _fill_metro_station(self, station):
+        station_field = self.find_element(OrderPageLocators.INPUT_STATION)
+        station_field.clear()
+        station_field.send_keys(station)
+
+        try:
+            self.wait_until(
+                lambda d: len(self.find_all_elements(OrderPageLocators.METRO_SUGGESTIONS)) > 0,
+                timeout=5,
+            )
+        except Exception:
+            pass
+
+        selected = self._select_station_from_suggestions(station, OrderPageLocators.STATION_SUGGESTIONS)
+
+        if not selected:
+            station_field.send_keys(Keys.ARROW_DOWN)
+            station_field.send_keys(Keys.ENTER)
+
+    def _select_station_from_suggestions(self, station, locator):
+        try:
+            elements = self.find_elements(locator)
+            for el in elements:
+                if station.lower() in el.text.lower() and el.is_displayed():
+                    self.click_element(el)
+                    return True
+        except Exception:
+            pass
+        return False
+
+    def _click_next_button(self):
+        next_btn = self.wait_for_clickable(OrderPageLocators.NEXT_BUTTON, timeout=10)
+        self.click_element(next_btn)
